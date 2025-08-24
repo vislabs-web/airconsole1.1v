@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirConsole TV Game</title>
+    <script src="https://www.airconsole.com/api/airconsole-1.7.0.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .game-screen {
+            width: 80%;
+            height: 70%;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 3px solid #74b9ff;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .connected {
+            background: rgba(46, 204, 113, 0.8);
+        }
+
+        .disconnected {
+            background: rgba(231, 76, 60, 0.8);
+        }
+
+        .qr-code-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            border: 2px dashed #ccc;
+        }
+
+        .game-area {
+            width: 100%;
+            height: 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .player {
+            width: 50px;
+            height: 50px;
+            background: #74b9ff;
+            border-radius: 50%;
+            position: absolute;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 20px rgba(116, 185, 255, 0.6);
+        }
+
+        .score-display {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+        }
+
+        .controller-info {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 200px;
+        }
+
+        .controller-info h3 {
+            margin-bottom: 10px;
+            color: #74b9ff;
+        }
+
+        .controller-info ul {
+            list-style: none;
+        }
+
+        .controller-info li {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #74b9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* TV Optimized Styles */
+        @media (min-width: 1920px) {
+            .game-title {
+                font-size: 4rem;
+            }
+            
+            .score-display {
+                font-size: 2.5rem;
+            }
+            
+            .instructions {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Mobile Controller Styles */
+        @media (max-width: 768px) {
+            .game-container {
+                display: none;
+            }
+            
+            .mobile-controller {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                background: #2d3436;
+            }
+            
+            .controller-screen {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .d-pad {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin: 20px 0;
+            }
+            
+            .d-pad button {
+                width: 60px;
+                height: 60px;
+                border: none;
+                border-radius: 10px;
+                background: #74b9ff;
+                color: white;
+                font-size: 1.5rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .d-pad button:active {
+                background: #0984e3;
+            }
+            
+            .d-pad .center {
+                background: #636e72;
+            }
+            
+            .action-buttons {
+                display: flex;
+                gap: 20px;
+                margin: 20px 0;
+            }
+            
+            .action-button {
+                width: 80px;
+                height: 80px;
+                border: none;
+                border-radius: 50%;
+                background: #e84393;
+                color: white;
+                font-size: 1.2rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .action-button:active {
+                background: #fd79a8;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TV Screen -->
+    <div class="game-container" id="tvScreen">
+        <div class="connection-status disconnected" id="connectionStatus">
+            Waiting for players...
+        </div>
+        
+        <div class="qr-code-container">
+            <div class="qr-code" id="qrCode">
+                Loading QR Code...
+            </div>
+        </div>
+        
+        <div class="game-screen">
+            <h1 class="game-title">AirConsole TV Game</h1>
+            <div class="score-display" id="scoreDisplay">
+                Score: 0
+            </div>
+            <div class="game-area" id="gameArea">
+                <div class="player" id="player"></div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            Scan the QR code with your phone to join the game!
+        </div>
+        
+        <div class="controller-info">
+            <h3>Controller Info</h3>
+            <ul>
+                <li>D-Pad: Move player</li>
+                <li>A Button: Action</li>
+                <li>B Button: Special</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Mobile Controller Screen -->
+    <div class="mobile-controller hidden" id="mobileController">
+        <div class="controller-screen">
+            <h2>Game Controller</h2>
+            <p>Connected to TV</p>
+            
+            <div class="d-pad">
+                <button class="center"></button>
+                <button class="up" data-direction="up">↑</button>
+                <button class="center"></button>
+                <button class="left" data-direction="left">←</button>
+                <button class="center"></button>
+                <button class="right" data-direction="right">→</button>
+                <button class="center"></button>
+                <button class="down" data-direction="down">↓</button>
+                <button class="center"></button>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-button" data-button="a">A</button>
+                <button class="action-button" data-button="b">B</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading" id="loadingScreen">
+        <div class="spinner"></div>
+        <h2>Loading AirConsole...</h2>
+    </div>
+
+    <script>
+        // AirConsole configuration
+        const airconsole = new AirConsole({
+            orientation: AirConsole.ORIENTATION_LANDSCAPE
+        });
+
+        let isTV = false;
+        let isController = false;
+        let playerPosition = { x: 50, y: 50 };
+        let score = 0;
+        let gameRunning = false;
+
+        // Initialize the game
+        airconsole.onReady = function() {
+            console.log("AirConsole is ready!");
+            
+            // Check if this is the TV or a controller
+            if (airconsole.getDeviceId() === AirConsole.SCREEN) {
+                isTV = true;
+                initializeTV();
+            } else {
+                isController = true;
+                initializeController();
+            }
+            
+            document.getElementById('loadingScreen').classList.add('hidden');
+        };
+
+        // Initialize TV screen
+        function initializeTV() {
+            document.getElementById('tvScreen').classList.remove('hidden');
+            document.getElementById('mobileController').classList.add('hidden');
+            
+            // Generate QR code URL
+            const qrUrl = `https://www.airconsole.com/#${airconsole.getServerUrl()}`;
+            document.getElementById('qrCode').innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; margin-bottom: 10px;">Scan with phone</div>
+                    <div style="font-size: 8px; word-break: break-all;">${qrUrl}</div>
+                </div>
+            `;
+            
+            startGame();
+        }
+
+        // Initialize mobile controller
+        function initializeController() {
+            document.getElementById('mobileController').classList.remove('hidden');
+            document.getElementById('tvScreen').classList.add('hidden');
+            
+            // Set up controller buttons
+            setupControllerButtons();
+        }
+
+        // Set up controller button events
+        function setupControllerButtons() {
+            // D-pad buttons
+            document.querySelectorAll('.d-pad button[data-direction]').forEach(button => {
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const direction = button.getAttribute('data-direction');
+                    airconsole.message(AirConsole.SCREEN, {
+                        action: 'move',
+                        direction: direction
+                    });
+                });
+                
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    airconsole.message(AirConsole.SCREEN, {
+                        action: 'stop'
+                    });
+                });
+            });
+
+            // Action buttons
+            document.querySelectorAll('.action-button').forEach(button => {
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const buttonType = button.getAttribute('data-button');
+                    airconsole.message(AirConsole.SCREEN, {
+                        action: 'button',
+                        button: buttonType
+                    });
+                });
+            });
+        }
+
+        // Handle messages from controllers
+        airconsole.onMessage = function(deviceId, data) {
+            if (isTV && data.action) {
+                handleGameInput(data);
+            }
+        };
+
+        // Handle game input
+        function handleGameInput(data) {
+            switch(data.action) {
+                case 'move':
+                    movePlayer(data.direction);
+                    break;
+                case 'button':
+                    handleButtonPress(data.button);
+                    break;
+                case 'stop':
+                    // Stop movement if needed
+                    break;
+            }
+        }
+
+        // Move player
+        function movePlayer(direction) {
+            const speed = 5;
+            const gameArea = document.getElementById('gameArea');
+            const player = document.getElementById('player');
+            const rect = gameArea.getBoundingClientRect();
+            
+            switch(direction) {
+                case 'up':
+                    playerPosition.y = Math.max(0, playerPosition.y - speed);
+                    break;
+                case 'down':
+                    playerPosition.y = Math.min(100, playerPosition.y + speed);
+                    break;
+                case 'left':
+                    playerPosition.x = Math.max(0, playerPosition.x - speed);
+                    break;
+                case 'right':
+                    playerPosition.x = Math.min(100, playerPosition.x + speed);
+                    break;
+            }
+            
+            player.style.left = playerPosition.x + '%';
+            player.style.top = playerPosition.y + '%';
+            
+            // Update score based on movement
+            score += 1;
+            updateScore();
+        }
+
+        // Handle button presses
+        function handleButtonPress(button) {
+            switch(button) {
+                case 'a':
+                    score += 10;
+                    updateScore();
+                    // Add visual feedback
+                    const player = document.getElementById('player');
+                    player.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        player.style.transform = 'scale(1)';
+                    }, 200);
+                    break;
+                case 'b':
+                    score += 20;
+                    updateScore();
+                    // Add special effect
+                    const gameArea = document.getElementById('gameArea');
+                    gameArea.style.background = 'rgba(116, 185, 255, 0.3)';
+                    setTimeout(() => {
+                        gameArea.style.background = 'transparent';
+                    }, 300);
+                    break;
+            }
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
+        }
+
+        // Start the game
+        function startGame() {
+            gameRunning = true;
+            updateConnectionStatus();
+        }
+
+        // Update connection status
+        function updateConnectionStatus() {
+            const status = document.getElementById('connectionStatus');
+            const controllers = airconsole.getControllerDeviceIds();
+            
+            if (controllers.length > 0) {
+                status.textContent = `${controllers.length} player(s) connected`;
+                status.className = 'connection-status connected';
+            } else {
+                status.textContent = 'Waiting for players...';
+                status.className = 'connection-status disconnected';
+            }
+        }
+
+        // Handle device connections
+        airconsole.onConnect = function(deviceId) {
+            console.log("Device connected:", deviceId);
+            updateConnectionStatus();
+        };
+
+        airconsole.onDisconnect = function(deviceId) {
+            console.log("Device disconnected:", deviceId);
+            updateConnectionStatus();
+        };
+
+        // Handle errors
+        airconsole.onError = function(error) {
+            console.error("AirConsole error:", error);
+        };
+
+        // Auto-detect device type for development
+        if (window.innerWidth <= 768) {
+            // Assume mobile device
+            document.getElementById('mobileController').classList.remove('hidden');
+            document.getElementById('tvScreen').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "name": "airconsole-google-tv-game",
+  "version": "1.0.0",
+  "description": "An AirConsole game website optimized for Google TV with mobile controllers",
+  "main": "airconsole-website.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "build": "echo 'No build step required - static HTML file'",
+    "deploy": "echo 'Deploy to your preferred hosting service'"
+  },
+  "keywords": [
+    "airconsole",
+    "google-tv",
+    "mobile-gaming",
+    "multiplayer",
+    "html5",
+    "javascript",
+    "css3"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/airconsole-google-tv-game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/airconsole-google-tv-game/issues"
+  },
+  "homepage": "https://yourusername.github.io/airconsole-google-tv-game",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
